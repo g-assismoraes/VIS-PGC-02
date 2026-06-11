@@ -268,14 +268,69 @@ function buildScatterRows(summaryRows, year, xMetric, yMetric) {
  * e a temperatura aparece como posição, tooltip e heatmap.
  */
 function buildFamilyColorScale(rows) {
-  const families = [...new Set(rows.map((d) => d.model_family))].sort();
+  const families = [...new Set(rows.map((d) => d.model_family))]
+    .filter(Boolean)
+    .sort();
 
+  const highContrastPalette = [
+    "#0072B2", // azul
+    "#D55E00", // laranja/vermelho
+    "#009E73", // verde
+    "#CC79A7", // rosa/roxo
+    "#E69F00", // amarelo/laranja
+    "#56B4E9", // azul claro
+    "#F0E442", // amarelo
+    "#000000", // preto
+
+    "#7B2CBF", // roxo forte
+    "#2A9D8F", // teal
+    "#E63946", // vermelho
+    "#457B9D", // azul petróleo
+    "#8C564B", // marrom
+    "#6A994E", // verde musgo
+    "#FF006E", // magenta
+    "#3A86FF", // azul vivo
+    "#FB5607", // laranja vivo
+    "#8338EC", // violeta
+    "#118AB2", // ciano escuro
+    "#073B4C", // azul escuro
+  ];
+
+  /**
+   * A escala continua dinâmica: as cores são atribuídas apenas às famílias
+   * presentes no scatter atual. A diferença é que agora usamos uma paleta
+   * categórica de alto contraste, em vez de uma escala contínua como Turbo.
+   */
   const palette =
-    families.length <= 10
-      ? d3.schemeTableau10
-      : d3.quantize(d3.interpolateTurbo, families.length);
+    families.length <= highContrastPalette.length
+      ? highContrastPalette.slice(0, families.length)
+      : buildDynamicHighContrastPalette(families.length);
 
-  return d3.scaleOrdinal().domain(families).range(palette);
+  return d3
+    .scaleOrdinal()
+    .domain(families)
+    .range(palette)
+    .unknown("#94a3b8");
+}
+
+function buildDynamicHighContrastPalette(n) {
+  /**
+   * Para muitos modelos, geramos cores em HCL, que tende a separar melhor
+   * percepção de matiz, luminosidade e intensidade do que RGB puro.
+   *
+   * O passo de 137.5 graus usa a lógica do ângulo áureo para evitar que cores
+   * consecutivas fiquem próximas demais no círculo cromático.
+   */
+  const goldenAngle = 137.508;
+
+  return d3.range(n).map((i) => {
+    const hue = (i * goldenAngle) % 360;
+
+    const chroma = i % 2 === 0 ? 70 : 55;
+    const lightness = i % 3 === 0 ? 48 : i % 3 === 1 ? 62 : 38;
+
+    return d3.hcl(hue, chroma, lightness).formatHex();
+  });
 }
 
 function renderFamilyLegend(rows, color) {
