@@ -86,6 +86,8 @@ function mountLayout() {
 
         <div id="modelLegend" class="model-legend"></div>
 
+        <div id="temperatureLegend" class="temperature-legend-row"></div>
+
         <div id="scatter" class="scatter-area"></div>
       </section>
 
@@ -194,6 +196,7 @@ function render() {
   const color = buildFamilyColorScale(rows);
 
   renderFamilyLegend(rows, color);
+  renderTemperatureLegend("#temperatureLegend");
 
   renderScatterPlot({
     selector: "#scatter",
@@ -265,7 +268,7 @@ function buildScatterRows(summaryRows, year, xMetric, yMetric) {
  * A cor representa família de modelo, não temperatura.
  *
  * Assim, todas as variantes de uma mesma família compartilham a cor,
- * e a temperatura aparece como posição, tooltip e heatmap.
+ * e a temperatura aparece pela forma dos pontos, tooltip e heatmap.
  */
 function buildFamilyColorScale(rows) {
   const families = [...new Set(rows.map((d) => d.model_family))]
@@ -273,33 +276,31 @@ function buildFamilyColorScale(rows) {
     .sort();
 
   const highContrastPalette = [
-    "#0072B2", // azul
-    "#D55E00", // laranja/vermelho
-    "#009E73", // verde
-    "#CC79A7", // rosa/roxo
-    "#E69F00", // amarelo/laranja
-    "#56B4E9", // azul claro
-    "#F0E442", // amarelo
-    "#000000", // preto
-
-    "#7B2CBF", // roxo forte
-    "#2A9D8F", // teal
-    "#E63946", // vermelho
-    "#457B9D", // azul petróleo
-    "#8C564B", // marrom
-    "#6A994E", // verde musgo
-    "#FF006E", // magenta
-    "#3A86FF", // azul vivo
-    "#FB5607", // laranja vivo
-    "#8338EC", // violeta
-    "#118AB2", // ciano escuro
-    "#073B4C", // azul escuro
+    "#0072B2",
+    "#D55E00",
+    "#009E73",
+    "#CC79A7",
+    "#E69F00",
+    "#56B4E9",
+    "#F0E442",
+    "#000000",
+    "#7B2CBF",
+    "#2A9D8F",
+    "#E63946",
+    "#457B9D",
+    "#8C564B",
+    "#6A994E",
+    "#FF006E",
+    "#3A86FF",
+    "#FB5607",
+    "#8338EC",
+    "#118AB2",
+    "#073B4C",
   ];
 
   /**
    * A escala continua dinâmica: as cores são atribuídas apenas às famílias
-   * presentes no scatter atual. A diferença é que agora usamos uma paleta
-   * categórica de alto contraste, em vez de uma escala contínua como Turbo.
+   * presentes no scatter atual.
    */
   const palette =
     families.length <= highContrastPalette.length
@@ -337,6 +338,7 @@ function renderFamilyLegend(rows, color) {
   const legend = d3.select("#modelLegend");
 
   const families = [...new Set(rows.map((d) => d.model_family))]
+    .filter(Boolean)
     .sort()
     .map((family) => ({
       key: family,
@@ -355,6 +357,104 @@ function renderFamilyLegend(rows, color) {
         <span class="legend-label">${d.label}</span>
       `,
     );
+}
+
+/**
+ * Legenda da forma dos pontos.
+ *
+ * Ela fica logo abaixo da legenda de modelos. A cor é neutra porque a cor já
+ * codifica família/modelo. Aqui a única codificação explicada é a forma.
+ */
+function renderTemperatureLegend(selector) {
+  const legend = d3.select(selector);
+
+  const temperatures = [
+    {
+      key: "0.3",
+      label: "T=0.3",
+      description: "triângulo para baixo",
+    },
+    {
+      key: "0.5",
+      label: "T=0.5",
+      description: "quadrado",
+    },
+    {
+      key: "0.7",
+      label: "T=0.7",
+      description: "triângulo para cima",
+    },
+  ];
+
+  legend.html("");
+
+  legend
+    .append("span")
+    .attr("class", "temperature-legend-title")
+    .text("Temperatura:");
+
+  const items = legend
+    .selectAll("div.temperature-legend-item")
+    .data(temperatures, (d) => d.key)
+    .join("div")
+    .attr("class", "temperature-legend-item")
+    .attr("title", (d) => d.description);
+
+  const iconSize = 24;
+
+  const icons = items
+    .append("svg")
+    .attr("class", "temperature-legend-icon")
+    .attr("viewBox", `0 0 ${iconSize} ${iconSize}`)
+    .attr("width", iconSize)
+    .attr("height", iconSize);
+
+  icons
+    .append("path")
+    .attr("d", (d) => getTemperatureLegendSymbolPath(d.key, 82))
+    .attr("transform", (d) => {
+      const rotation = getTemperatureLegendRotation(d.key);
+      return `translate(${iconSize / 2}, ${iconSize / 2}) rotate(${rotation})`;
+    })
+    .attr("fill", "#334155")
+    .attr("stroke", "#ffffff")
+    .attr("stroke-width", 1);
+
+  items.append("span").text((d) => d.label);
+}
+
+function getTemperatureLegendSymbolPath(temperature, size) {
+  return d3
+    .symbol()
+    .type(getTemperatureLegendSymbolType(temperature))
+    .size(size)();
+}
+
+function getTemperatureLegendSymbolType(temperature) {
+  const normalized = normalizeTemperatureLabel(temperature);
+
+  if (normalized === "0.3") return d3.symbolTriangle;
+  if (normalized === "0.5") return d3.symbolSquare;
+  if (normalized === "0.7") return d3.symbolTriangle;
+
+  return d3.symbolCircle;
+}
+
+function getTemperatureLegendRotation(temperature) {
+  const normalized = normalizeTemperatureLabel(temperature);
+
+  if (normalized === "0.3") return 180;
+  return 0;
+}
+
+function normalizeTemperatureLabel(value) {
+  const numericValue = Number(value);
+
+  if (Number.isFinite(numericValue)) {
+    return numericValue.toFixed(1);
+  }
+
+  return String(value).trim();
 }
 
 /**

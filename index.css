@@ -41,7 +41,7 @@ body {
 
 .left-panel {
   display: grid;
-  grid-template-rows: auto auto minmax(0, 1fr);
+  grid-template-rows: auto auto auto minmax(0, 1fr);
   min-width: 0;
   overflow: hidden;
 }
@@ -111,6 +111,42 @@ select {
   height: 9px;
   border-radius: 50%;
   display: inline-block;
+  flex-shrink: 0;
+}
+
+.temperature-legend-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+  padding: 7px 20px 8px 20px;
+  background: #ffffff;
+  border-bottom: 1px solid rgba(15, 23, 42, 0.06);
+}
+
+.temperature-legend-title {
+  font-size: 0.74rem;
+  font-weight: 850;
+  color: #475569;
+  margin-right: 2px;
+}
+
+.temperature-legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.74rem;
+  font-weight: 700;
+  color: #334155;
+  white-space: nowrap;
+  padding: 3px 8px 3px 5px;
+  border-radius: 999px;
+  background: #f8fafc;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+}
+
+.temperature-legend-icon {
+  display: block;
   flex-shrink: 0;
 }
 
@@ -208,6 +244,17 @@ select {
   border: 1px solid rgba(15, 23, 42, 0.08);
   margin-bottom: 12px;
   color: #475569;
+}
+
+.selection-note {
+  display: inline-block;
+  margin-left: 6px;
+  font-size: 0.74rem;
+  font-weight: 800;
+  color: #0f766e;
+  background: #ccfbf1;
+  border-radius: 999px;
+  padding: 2px 7px;
 }
 
 .side-card {

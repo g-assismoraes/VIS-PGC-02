@@ -17,6 +17,12 @@ import {
  * de seleção para a main por callbacks. Assim, o gerenciamento global de estado
  * fica centralizado em main.js, enquanto este arquivo cuida apenas da lógica
  * visual e interativa do scatter.
+ *
+ * Codificações visuais:
+ * - posição X: métrica selecionada para o eixo X;
+ * - posição Y: métrica selecionada para o eixo Y;
+ * - cor: família/modelo;
+ * - forma: temperatura.
  */
 export function renderScatterPlot({
   selector,
@@ -247,25 +253,25 @@ export function renderScatterPlot({
   /**
    * Pontos do scatter.
    *
-   * Cada ponto representa uma variante modelo-temperatura. A cor é dada pela
-   * família do modelo, definida na main, para manter consistência com os outros
-   * gráficos.
+   * Usamos path + d3.symbol em vez de circle. Isso permite codificar
+   * temperatura pela forma, mantendo a cor exclusivamente para família/modelo.
    */
   points = g
     .append("g")
     .attr("class", "points")
-    .selectAll("circle")
+    .selectAll("path")
     .data(rows)
-    .join("circle")
-    .attr("cx", (d) => x(d.x))
-    .attr("cy", (d) => y(d.y))
-    .attr("r", 6.7)
+    .join("path")
+    .attr("d", (d) => getTemperatureSymbolPath(d, 105))
+    .attr("transform", (d) => getTemperatureSymbolTransform(d, x, y))
     .attr("fill", (d) => color(d.model_family))
     .attr("stroke", "#ffffff")
     .attr("stroke-width", 1.5)
     .attr("opacity", 0.9)
     .on("mouseover", function (event, d) {
-      d3.select(this).attr("r", 8.8).attr("opacity", 1);
+      d3.select(this)
+        .attr("d", getTemperatureSymbolPath(d, 165))
+        .attr("opacity", 1);
 
       tooltip.style("opacity", 1).html(`
         <div class="tooltip-title">${d.model_key}</div>
@@ -299,10 +305,59 @@ export function renderScatterPlot({
       moveTooltip(event);
     })
     .on("mousemove", moveTooltip)
-    .on("mouseout", function () {
-      d3.select(this).attr("r", 6.7);
+    .on("mouseout", function (event, d) {
+      d3.select(this).attr("d", getTemperatureSymbolPath(d, 105));
       tooltip.style("opacity", 0);
     });
 
   updateSelections();
+}
+
+/**
+ * Define a forma de cada temperatura.
+ *
+ * T=0.3 e T=0.7 usam triângulo. A diferença visual vem da rotação:
+ * - 0.3 aponta para baixo;
+ * - 0.7 aponta para cima.
+ *
+ * T=0.5 usa quadrado.
+ */
+function getTemperatureSymbolType(d) {
+  const temperature = normalizeTemperatureLabel(d.temperature_label);
+
+  if (temperature === "0.3") return d3.symbolTriangle;
+  if (temperature === "0.5") return d3.symbolSquare;
+  if (temperature === "0.7") return d3.symbolTriangle;
+
+  return d3.symbolCircle;
+}
+
+function getTemperatureRotation(temperatureLabel) {
+  const temperature = normalizeTemperatureLabel(temperatureLabel);
+
+  if (temperature === "0.3") return 180;
+  return 0;
+}
+
+function getTemperatureSymbolPath(d, size) {
+  return d3.symbol().type(getTemperatureSymbolType(d)).size(size)();
+}
+
+function getTemperatureSymbolTransform(d, xScale, yScale) {
+  const rotation = getTemperatureRotation(d.temperature_label);
+
+  return `translate(${xScale(d.x)},${yScale(d.y)}) rotate(${rotation})`;
+}
+
+/**
+ * Normaliza rótulos para evitar diferenças como "0.30", "0.3" ou número 0.3.
+ */
+function normalizeTemperatureLabel(value) {
+  const numericValue = Number(value);
+
+  if (Number.isFinite(numericValue)) {
+    return numericValue.toFixed(1);
+  }
+
+  return String(value).trim();
 }
