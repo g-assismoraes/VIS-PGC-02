@@ -22,6 +22,8 @@ export function renderOrderedModels({
   metricName,
   valueAccessor,
   rankLimit,
+  selectedModelKey = null,
+  onModelSelect = null,
 }) {
   const card = container.append("div").attr("class", "side-card");
 
@@ -89,7 +91,12 @@ export function renderOrderedModels({
     .attr("height", y.bandwidth())
     .attr("rx", 3)
     .attr("fill", (d) => color(d.model_family))
-    .attr("opacity", 0.88)
+    .attr("opacity", (d) => (d.model_key === selectedModelKey ? 1 : 0.88))
+    .attr("stroke", (d) =>
+      d.model_key === selectedModelKey ? "#ff007f" : "transparent",
+    )
+    .attr("stroke-width", (d) => (d.model_key === selectedModelKey ? 2 : 0))
+    .style("cursor", onModelSelect ? "pointer" : "default")
     .on("mouseover", function (event, d) {
       d3.select(this).attr("opacity", 1);
 
@@ -118,8 +125,16 @@ export function renderOrderedModels({
     })
     .on("mousemove", moveTooltip)
     .on("mouseout", function () {
-      d3.select(this).attr("opacity", 0.88);
+      d3.select(this).attr("opacity", (d) =>
+        d.model_key === selectedModelKey ? 1 : 0.88,
+      );
       tooltip.style("opacity", 0);
+    })
+    .on("click", function (event, d) {
+      if (!onModelSelect) return;
+      event.stopPropagation();
+      const isCurrentSelected = d.model_key === selectedModelKey;
+      onModelSelect(isCurrentSelected ? null : d.model_key);
     });
 
   svg

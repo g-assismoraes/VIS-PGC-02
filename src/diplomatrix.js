@@ -48,7 +48,7 @@ export class DiplomatrixData {
 
     const yearlySummary = await this.query(`
       SELECT
-        CAST(year AS VARCHAR) AS year,
+        year,
         model_key,
         model_family,
         model_display,
@@ -106,12 +106,13 @@ export class DiplomatrixData {
     const summaryRows = [...allYearsSummary, ...yearlySummary];
 
     return {
+      rawJson: json,
       rawRows: rows,
       summaryRows,
       metrics: [...new Set(summaryRows.map((d) => d.metric))].sort(),
       years: [
         "Todos",
-        ...[...new Set(yearlySummary.map((d) => d.year))].sort(),
+        ...sortYearLabels([...new Set(yearlySummary.map((d) => d.year))]),
       ],
       models: [...new Set(summaryRows.map((d) => d.model_key))].sort(),
     };
@@ -143,7 +144,7 @@ export class DiplomatrixData {
             if (!Number.isFinite(value)) return;
 
             output.push({
-              year: Number(year),
+              year,
               model_key: modelKey,
               model_family: modelInfo.family,
               model_display: modelInfo.display,
@@ -170,7 +171,7 @@ export class DiplomatrixData {
   async createRawTable(rows) {
     await this.conn.query(`
       CREATE OR REPLACE TABLE automatic_metrics_raw (
-        year INTEGER,
+        year VARCHAR,
         model_key VARCHAR,
         model_family VARCHAR,
         model_display VARCHAR,
@@ -198,7 +199,7 @@ export class DiplomatrixData {
       const values = chunk
         .map(
           (r) => `(
-            ${sqlNumber(r.year)},
+            ${sqlString(r.year)},
             ${sqlString(r.model_key)},
             ${sqlString(r.model_family)},
             ${sqlString(r.model_display)},
@@ -284,5 +285,11 @@ function normalizeRow(obj) {
       key,
       typeof value === "bigint" ? Number(value) : value,
     ]),
+  );
+}
+
+function sortYearLabels(years) {
+  return years.sort((a, b) =>
+    String(a).localeCompare(String(b), "pt-BR", { numeric: true }),
   );
 }

@@ -5,6 +5,7 @@ import { renderMetricHistogram } from "./views/metricHistogram";
 import { renderTemperatureHistogram } from "./views/temperatureHistogram";
 import { renderTemperatureHeatmap } from "./views/temperatureHeatmap";
 import { renderOrderedModels } from "./views/orderedModels";
+import { renderEssayInspector } from "./views/essayInspector";
 import { prettifyFamily } from "./views/viewUtils";
 import "../index.css";
 
@@ -28,6 +29,7 @@ const state = {
   brushAreas: [],
   isShiftDown: false,
   rankLimit: "10",
+  selectedModelKey: null,
 };
 
 window.addEventListener("keydown", (event) => {
@@ -44,6 +46,11 @@ window.addEventListener("keyup", (event) => {
 
 window.addEventListener("blur", () => {
   state.isShiftDown = false;
+});
+
+window.addEventListener("resetModelSelection", () => {
+  state.selectedModelKey = null;
+  render();
 });
 
 window.addEventListener("load", async () => {
@@ -112,6 +119,8 @@ function mountLayout() {
 
         <div id="sideCharts"></div>
       </aside>
+
+      <section id="essayInspector" class="essay-inspector-area"></section>
     </main>
 
     <footer class="page-status-row">
@@ -156,6 +165,7 @@ function initializeControls() {
   d3.select("#yearSelect").on("change", (event) => {
     state.year = event.target.value;
     state.brushAreas = [];
+    state.selectedModelKey = null;
     render();
   });
 
@@ -205,9 +215,14 @@ function render() {
     xMetric: state.xMetric,
     yMetric: state.yMetric,
     brushAreas: state.brushAreas,
+    selectedModelKey: state.selectedModelKey,
     isShiftDown: () => state.isShiftDown,
     onBrushAreasChange: (newBrushAreas) => {
       state.brushAreas = newBrushAreas;
+    },
+    onModelSelect: (modelKey) => {
+      state.selectedModelKey = modelKey;
+      render();
     },
     onSelectionChange: ({ selected, hasActiveBrush }) => {
       renderSideCharts({
@@ -217,6 +232,14 @@ function render() {
         hasActiveBrush,
       });
     },
+  });
+
+  renderEssayInspector({
+    containerSelector: "#essayInspector",
+    selectedModelKey: state.selectedModelKey,
+    year: state.year,
+    rawData: state.data.rawJson,
+    colorScale: color,
   });
 }
 
@@ -519,11 +542,13 @@ function renderSideCharts({ selected, allRows, color, hasActiveBrush }) {
     rows: activeRows,
   });
 
+
+
   renderTemperatureHeatmap({
     container,
     title: `Heatmap de temperatura por ${state.xMetric}`,
     caption:
-      "Linhas representam famílias de modelos, colunas representam temperaturas e a cor representa o valor da métrica do eixo X.",
+      "Heatmap dos Modelos x Temperaturas. A cor representa o valor médio da métrica do eixo X.",
     rows: activeRows,
     metricName: state.xMetric,
     valueAccessor: (d) => d.x,
@@ -533,7 +558,7 @@ function renderSideCharts({ selected, allRows, color, hasActiveBrush }) {
     container,
     title: `Heatmap de temperatura por ${state.yMetric}`,
     caption:
-      "Linhas representam famílias de modelos, colunas representam temperaturas e a cor representa o valor da métrica do eixo Y.",
+      "Heatmap dos *Modelos x Temperaturas. A cor representa o valor médio da métrica do eixo Y.",
     rows: activeRows,
     metricName: state.yMetric,
     valueAccessor: (d) => d.y,
@@ -549,6 +574,11 @@ function renderSideCharts({ selected, allRows, color, hasActiveBrush }) {
     metricName: state.xMetric,
     valueAccessor: (d) => d.x,
     rankLimit: state.rankLimit,
+    selectedModelKey: state.selectedModelKey,
+    onModelSelect: (modelKey) => {
+      state.selectedModelKey = modelKey;
+      render();
+    },
   });
 
   renderOrderedModels({
@@ -561,6 +591,11 @@ function renderSideCharts({ selected, allRows, color, hasActiveBrush }) {
     metricName: state.yMetric,
     valueAccessor: (d) => d.y,
     rankLimit: state.rankLimit,
+    selectedModelKey: state.selectedModelKey,
+    onModelSelect: (modelKey) => {
+      state.selectedModelKey = modelKey;
+      render();
+    },
   });
 }
 

@@ -31,8 +31,10 @@ export function renderScatterPlot({
   xMetric,
   yMetric,
   brushAreas,
+  selectedModelKey,
   isShiftDown,
   onBrushAreasChange,
+  onModelSelect,
   onSelectionChange,
 }) {
   const container = d3.select(selector);
@@ -163,15 +165,23 @@ export function renderScatterPlot({
 
     if (points) {
       points
-        .attr("stroke", (d) =>
-          selectedSet.has(d.model_key) ? "#0f172a" : "#ffffff",
-        )
-        .attr("stroke-width", (d) =>
-          selectedSet.has(d.model_key) ? 2.8 : 1.5,
-        )
+        .attr("stroke", (d) => {
+          if (d.model_key === selectedModelKey) return "#ff007f";
+          if (selectedSet.has(d.model_key)) return "#0f172a";
+          return "#ffffff";
+        })
+        .attr("stroke-width", (d) => {
+          if (d.model_key === selectedModelKey) return 4.0;
+          if (selectedSet.has(d.model_key)) return 2.8;
+          return 1.5;
+        })
         .attr("opacity", (d) => {
           if (!hasActiveBrush) return 0.9;
           return selectedSet.has(d.model_key) ? 1 : 0.28;
+        })
+        .attr("d", (d) => {
+          if (d.model_key === selectedModelKey) return getTemperatureSymbolPath(d, 220);
+          return getTemperatureSymbolPath(d, 105);
         });
     }
 
@@ -308,6 +318,11 @@ export function renderScatterPlot({
     .on("mouseout", function (event, d) {
       d3.select(this).attr("d", getTemperatureSymbolPath(d, 105));
       tooltip.style("opacity", 0);
+    })
+    .on("click", function (event, d) {
+      event.stopPropagation();
+      const isCurrentSelected = d.model_key === selectedModelKey;
+      onModelSelect(isCurrentSelected ? null : d.model_key);
     });
 
   updateSelections();

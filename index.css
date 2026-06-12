@@ -5,13 +5,13 @@
 html,
 body {
   width: 100%;
-  height: 100%;
+  min-height: 100%;
 }
 
 body {
   margin: 0;
   display: grid;
-  grid-template-rows: minmax(0, 1fr) auto;
+  grid-template-rows: auto auto;
   font-family:
     Inter,
     system-ui,
@@ -24,11 +24,12 @@ body {
 }
 
 .app {
-  min-height: 0;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 430px;
+  grid-template-columns: minmax(760px, 1fr) minmax(360px, 400px);
+  grid-template-rows: auto auto;
   gap: 16px;
   padding: 16px 16px 8px 16px;
+  align-items: start;
 }
 
 .left-panel,
@@ -41,7 +42,7 @@ body {
 
 .left-panel {
   display: grid;
-  grid-template-rows: auto auto auto minmax(0, 1fr);
+  grid-template-rows: auto auto auto auto;
   min-width: 0;
   overflow: hidden;
 }
@@ -49,6 +50,8 @@ body {
 .right-panel {
   padding: 16px;
   overflow-y: auto;
+  height: 860px;
+  max-height: 860px;
 }
 
 .chart-header {
@@ -151,7 +154,8 @@ select {
 }
 
 .scatter-area {
-  min-height: 0;
+  height: clamp(640px, 76vh, 860px);
+  min-height: 640px;
   padding: 8px 12px 8px 12px;
 }
 
@@ -351,4 +355,322 @@ select {
 
 .brush .overlay {
   cursor: crosshair;
+}
+
+/* ========== Essay Inspector Styles ========== */
+
+.essay-inspector-area {
+  grid-column: 1 / -1;
+  background: #ffffff;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  border-radius: 18px;
+  overflow: hidden;
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.06);
+}
+
+.empty-inspector {
+  padding: 24px 32px;
+  text-align: center;
+  color: #0f172a;
+  background: linear-gradient(180deg, #f8fafc 0%, #ecfdf5 100%);
+}
+
+.empty-icon {
+  font-size: 36px;
+  margin-bottom: 8px;
+}
+
+.empty-inspector h3 {
+  font-size: 20px;
+  font-weight: 700;
+  margin: 0 0 12px 0;
+  color: #0f172a;
+}
+
+.empty-inspector p {
+  font-size: 14px;
+  margin: 0;
+  color: #475569;
+  line-height: 1.6;
+}
+
+.active-inspector {
+  background: #ffffff;
+  color: #0f172a;
+  border-top: 5px solid #0f766e;
+}
+
+.inspector-card {
+  padding: 24px;
+  border-radius: 18px;
+}
+
+.inspector-header {
+  border-bottom: 1px solid #e2e8f0;
+  padding-bottom: 18px;
+  margin-bottom: 18px;
+  position: relative;
+}
+
+.inspector-title-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.inspector-badge {
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.inspector-header h2 {
+  flex: 1;
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.close-inspector-btn {
+  position: absolute;
+  top: 0;
+  right: 0;
+  background: none;
+  border: none;
+  font-size: 32px;
+  cursor: pointer;
+  color: #94a3b8;
+  padding: 0;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+}
+
+.close-inspector-btn:hover {
+  background: #f1f5f9;
+  color: #0f172a;
+}
+
+.country-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  background: #f1f5f9;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #475569;
+}
+
+.country-legend-container {
+  display: grid;
+  gap: 6px;
+  margin-top: 8px;
+  font-size: 0.74rem;
+  color: #475569;
+}
+
+.country-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.country-legend-note {
+  color: #64748b;
+  font-weight: 700;
+}
+
+.essay-text {
+  background: #f8fafc;
+  padding: 16px;
+  border-radius: 10px;
+  border: 1px solid #e2e8f0;
+  border-left: 4px solid #0f766e;
+  font-family: 'Monaco', 'Courier New', monospace;
+  font-size: 13px;
+  line-height: 1.6;
+  max-height: min(62vh, 720px);
+  overflow: auto;
+  word-wrap: break-word;
+  color: #1e293b;
+}
+
+.essay-section h3 {
+  font-size: 14px;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 16px 0 8px 0;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.essay-comparison {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  margin-bottom: 24px;
+}
+
+.statement-accordion {
+  margin-bottom: 18px;
+}
+
+.accordion-header {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+  background: #f8fafc;
+  color: #334155;
+  padding: 10px 12px;
+  cursor: pointer;
+  font-weight: 800;
+  text-align: left;
+}
+
+.accordion-header.open,
+.accordion-header:hover {
+  background: #ecfdf5;
+  border-color: #99f6e4;
+  color: #0f766e;
+}
+
+.accordion-content {
+  margin-top: 8px;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  background: #ffffff;
+  padding: 14px;
+}
+
+.statement-text {
+  max-height: 280px;
+  overflow: auto;
+  color: #334155;
+  font-size: 0.9rem;
+  line-height: 1.55;
+}
+
+.statement-text p {
+  margin: 0;
+}
+
+.inspector-metrics {
+  display: grid;
+  grid-template-columns: minmax(280px, 0.85fr) minmax(360px, 1.15fr);
+  gap: 18px;
+  align-items: start;
+}
+
+.automatic-metrics-panel,
+.linguistic-comparison-panel {
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  background: #f8fafc;
+  padding: 14px;
+}
+
+.automatic-metrics-panel h5,
+.linguistic-comparison-panel h5 {
+  margin: 0 0 10px 0;
+  color: #0f172a;
+  font-size: 0.88rem;
+}
+
+.metrics-badges-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  gap: 8px;
+}
+
+.metric-badge-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border: 1px solid rgba(15, 118, 110, 0.16);
+  border-radius: 9px;
+  background: #ffffff;
+}
+
+.metric-badge-name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: #475569;
+  font-size: 0.74rem;
+  font-weight: 750;
+}
+
+.metric-badge-val {
+  color: #0f766e;
+  font-weight: 850;
+  font-size: 0.82rem;
+}
+
+.linguistic-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.8rem;
+  background: #ffffff;
+  border-radius: 9px;
+  overflow: hidden;
+}
+
+.linguistic-table th,
+.linguistic-table td {
+  padding: 8px 10px;
+  border-bottom: 1px solid #e2e8f0;
+  text-align: left;
+}
+
+.linguistic-table th {
+  color: #475569;
+  background: #f1f5f9;
+  font-weight: 850;
+}
+
+.linguistic-table tr:last-child td {
+  border-bottom: 0;
+}
+
+.linguistic-table .high-diff td {
+  background: #fff7ed;
+}
+
+@media (max-width: 1180px) {
+  .app {
+    grid-template-columns: 1fr;
+  }
+
+  .right-panel {
+    height: auto;
+    max-height: none;
+  }
+
+}
+
+@media (max-width: 1200px) {
+  .essay-comparison {
+    grid-template-columns: 1fr;
+  }
+
+  .inspector-metrics {
+    grid-template-columns: 1fr;
+  }
 }

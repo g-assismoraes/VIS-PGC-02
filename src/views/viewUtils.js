@@ -18,6 +18,29 @@ export function prettifyFamily(value) {
     .replace(/\b\w/g, (c) => c.toUpperCase());
 }
 
+export function getModelCountry(modelFamily) {
+  const normalized = String(modelFamily).toLowerCase();
+
+  const countryByPrefix = [
+    { prefix: "command", name: "Canadá", flag: "CA" },
+    { prefix: "gemma", name: "Estados Unidos", flag: "US" },
+    { prefix: "gpt", name: "Estados Unidos", flag: "US" },
+    { prefix: "llama", name: "Estados Unidos", flag: "US" },
+    { prefix: "mistral", name: "França", flag: "FR" },
+    { prefix: "mixtral", name: "França", flag: "FR" },
+    { prefix: "phi", name: "Estados Unidos", flag: "US" },
+    { prefix: "qwen", name: "China", flag: "CN" },
+    { prefix: "sabia", name: "Brasil", flag: "BR" },
+  ];
+
+  return (
+    countryByPrefix.find(({ prefix }) => normalized.startsWith(prefix)) ?? {
+      name: "Indefinido",
+      flag: "--",
+    }
+  );
+}
+
 export function truncate(value, maxLength) {
   const text = String(value);
   return text.length > maxLength ? `${text.slice(0, maxLength - 1)}…` : text;
