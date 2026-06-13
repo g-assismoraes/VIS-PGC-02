@@ -21,6 +21,45 @@ import "../index.css";
  *
  * As views recebem esse estado como parâmetro e redesenham o DOM com D3.
  */
+
+
+/**
+ * Estado central da aplicação.
+ *
+ * Este objeto concentra as informações que precisam ser compartilhadas
+ * entre os controles, o scatter plot e os subgráficos laterais.
+ *
+ * data:
+ *   Armazena os dados carregados e agregados a partir do JSON/DuckDB.
+ *
+ * xMetric e yMetric:
+ *   Guardam as métricas escolhidas para os eixos X e Y do scatter plot.
+ *   Quando uma delas muda, o scatter e os subgráficos precisam ser redesenhados.
+ *
+ * year:
+ *   Guarda o ano selecionado no filtro. O valor "Todos" representa a agregação
+ *   geral, considerando todos os anos disponíveis.
+ *
+ * brushAreas:
+ *   Lista das regiões selecionadas no scatter plot. Cada região é armazenada
+ *   pelas coordenadas x0, y0, x1 e y1 no espaço visual do gráfico. Quando o
+ *   usuário usa Shift, novas regiões são adicionadas a essa lista; sem Shift,
+ *   a lista é substituída por uma nova seleção.
+ *
+ * isShiftDown:
+ *   Indica se a tecla Shift está pressionada. Esse estado é usado para decidir
+ *   se o brush deve criar uma seleção nova ou acumular múltiplas regiões.
+ *
+ * rankLimit:
+ *   Define quantos pontos aparecem nos rankings laterais. Pode ser "5", "10"
+ *   ou "all".
+ *
+ * selectedModelKey:
+ *   Guarda o modelo selecionado individualmente por clique. Esse estado permite
+ *   destacar o mesmo modelo no scatter e pode ser usado para sincronizar outras
+ *   visualizações.
+ */
+
 const state = {
   data: null,
   xMetric: null,

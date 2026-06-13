@@ -12,13 +12,7 @@ import { loadDb } from "./config";
  *
  * O arquivo original possui estrutura hierárquica:
  *
- * Models_Essays
- *   └── ano
- *       └── Models
- *           └── modelo
- *               └── Automatic Metrics
- *                   └── métrica
- *                       └── candidato: valor
+ * Models_Essays[ano].Models[modelo]["Automatic Metrics"][métrica][candidato] = valor
  *
  * Para facilitar análises e consultas, essa estrutura é convertida
  * para uma tabela longa (long format):
