@@ -7,11 +7,14 @@ import {
 } from "./viewUtils";
 
 /**
- * Histograma de uma métrica numérica.
+ * Renderiza um histograma para uma métrica numérica.
  *
- * Este componente é usado duas vezes: uma para a métrica do eixo X e outra
- * para a métrica do eixo Y. A função recebe valores já filtrados pela main,
- * que decide se eles vêm do brush ou de todos os pontos.
+ * O componente é reutilizado para exibir a distribuição
+ * dos valores das métricas selecionadas nos eixos X e Y
+ * do scatter plot principal.
+ *
+ * Os dados recebidos já chegam filtrados pela camada superior
+ * da aplicação (por exemplo, após seleção via brush).
  */
 export function renderMetricHistogram({
   container,
@@ -20,30 +23,48 @@ export function renderMetricHistogram({
   values,
   colorValue,
 }) {
+  // Cria o card visual que encapsula o histograma.
   const card = container.append("div").attr("class", "side-card");
 
   card.append("h3").text(title);
   card.append("p").attr("class", "chart-caption").text(caption);
 
+  /**
+   * Dimensões internas do gráfico.
+   *
+   * O histograma utiliza SVG responsivo através de viewBox,
+   * permitindo adaptação ao espaço disponível sem perder qualidade.
+   */
   const width = 380;
   const height = 190;
-  const margin = { top: 16, right: 18, bottom: 44, left: 48 };
+
+  const margin = {
+    top: 16,
+    right: 18,
+    bottom: 44,
+    left: 48,
+  };
 
   const svg = card
     .append("svg")
     .attr("viewBox", `0 0 ${width} ${height}`)
     .attr("width", "100%");
 
+  /**
+   * Remove valores inválidos (NaN, undefined, Infinity etc.)
+   * para evitar problemas durante o cálculo dos bins e escalas.
+   */
   const cleanValues = values.filter(Number.isFinite);
 
+  // Não há dados suficientes para renderizar o gráfico.
   if (!cleanValues.length) return;
 
   /**
-   * Escalas do histograma.
+   * Escala horizontal.
    *
-   * A escala X usa o domínio dos valores da métrica. Os bins são calculados
-   * com d3.bin a partir desse domínio, e a escala Y representa a contagem de
-   * pontos em cada intervalo.
+   * Representa o domínio dos valores da métrica analisada.
+   * O paddedDomain adiciona uma pequena margem nas extremidades,
+   * evitando que barras encostem nas bordas do gráfico.
    */
   const x = d3
     .scaleLinear()
@@ -51,21 +72,38 @@ export function renderMetricHistogram({
     .nice()
     .range([margin.left, width - margin.right]);
 
-  const bins = d3.bin().domain(x.domain()).thresholds(8)(cleanValues);
+  /**
+   * Agrupa os valores em intervalos (bins).
+   *
+   * Cada bin representa uma faixa de valores e armazenará
+   * a quantidade de observações pertencentes a ela.
+   */
+  const bins = d3
+    .bin()
+    .domain(x.domain())
+    .thresholds(8)(cleanValues);
 
+  /**
+   * Escala vertical.
+   *
+   * Representa a frequência (quantidade de pontos)
+   * existente em cada intervalo do histograma.
+   */
   const y = d3
     .scaleLinear()
     .domain([0, d3.max(bins, (d) => d.length) || 1])
     .nice()
     .range([height - margin.bottom, margin.top]);
 
+  // Tooltip compartilhado utilizado pelos componentes da dashboard.
   const tooltip = getTooltip();
 
   /**
-   * Atualização do DOM com join.
+   * Renderização das barras.
    *
-   * Cada bin vira um retângulo. O tooltip evita colocar muitos rótulos dentro
-   * de um painel lateral pequeno.
+   * Cada bin é transformado em um retângulo cuja:
+   * - largura representa a faixa do intervalo;
+   * - altura representa a frequência de ocorrências.
    */
   svg
     .append("g")
@@ -79,6 +117,10 @@ export function renderMetricHistogram({
     .attr("rx", 3)
     .attr("fill", colorValue)
     .attr("opacity", 0.85)
+
+    /**
+     * Exibe informações detalhadas do intervalo selecionado.
+     */
     .on("mouseover", function (event, d) {
       d3.select(this).attr("opacity", 1);
 
@@ -103,12 +145,21 @@ export function renderMetricHistogram({
 
       moveTooltip(event);
     })
+
+    // Mantém o tooltip acompanhando o cursor.
     .on("mousemove", moveTooltip)
+
+    // Restaura o estado visual ao sair da barra.
     .on("mouseout", function () {
       d3.select(this).attr("opacity", 0.85);
       tooltip.style("opacity", 0);
     });
 
+  /**
+   * Eixo X.
+   *
+   * Representa os valores da métrica analisada.
+   */
   svg
     .append("g")
     .attr("transform", `translate(0,${height - margin.bottom})`)
@@ -117,6 +168,12 @@ export function renderMetricHistogram({
     .attr("font-size", 9.5)
     .attr("fill", "#475569");
 
+  /**
+   * Eixo Y.
+   *
+   * Representa a quantidade de observações
+   * presentes em cada intervalo.
+   */
   svg
     .append("g")
     .attr("transform", `translate(${margin.left},0)`)

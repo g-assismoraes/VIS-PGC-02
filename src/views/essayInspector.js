@@ -96,11 +96,11 @@ export function renderEssayInspector({
   header.html(`
     <div class="inspector-title-row">
       <div class="inspector-badge" style="background: ${colorScale(family)}; box-shadow: 0 6px 20px ${colorScale(family)}40;"></div>
-      <div style="flex: 1;">
-        <h2 style="margin: 0 0 4px 0; font-size: 20px;">
+      <div class="inspector-title-content">
+        <h2>
           ${escapeHtml(prettifyFamily(family))}
         </h2>
-        <div style="display: flex; gap: 12px; font-size: 12px; color: #64748b;">
+        <div class="inspector-meta-row">
           <span>📅 Ano: <strong>${escapeHtml(year)}</strong></span>
           <span>🌡️ Temperatura: <strong>T=${escapeHtml(temperature)}</strong></span>
         </div>
@@ -152,33 +152,24 @@ export function renderEssayInspector({
   const rightPanel = splitContainer.append("div").attr("class", "essay-section");
   const referenceLabelRow = rightPanel
     .append("div")
-    .style("margin-bottom", "12px");
+    .attr("class", "reference-header");
   referenceLabelRow
     .append("h3")
-    .style("margin", "0 0 8px 0")
     .html(`🧑‍💻 Referência Humana`);
 
   const referenceSelectorRow = referenceLabelRow
     .append("div")
-    .style("display", "flex")
-    .style("gap", "8px")
-    .style("font-size", "12px");
+    .attr("class", "reference-selector-row");
 
   referenceSelectorRow
     .append("label")
     .attr("for", "candidateSelector")
-    .style("color", "#64748b")
-    .style("align-self", "center")
     .text("Selecionar:");
 
   const candSelect = referenceSelectorRow
     .append("select")
     .attr("id", "candidateSelector")
-    .style("padding", "6px 8px")
-    .style("border-radius", "6px")
-    .style("border", "1px solid #e2e8f0")
-    .style("font-size", "12px")
-    .style("cursor", "pointer");
+    .attr("class", "candidate-selector");
 
   candSelect
     .selectAll("option")

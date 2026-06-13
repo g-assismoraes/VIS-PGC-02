@@ -81,7 +81,7 @@ function mountLayout() {
         <header class="chart-header">
           <h1>Diplomatrix — Comparação de Métricas Automáticas</h1>
 
-          <h2>
+          <h2 class="chart-controls">
             Comparar
             <select id="xMetricSelect"></select>
             com
@@ -196,6 +196,12 @@ function pickDefaultMetric(metrics, candidates) {
  * compartilhada entre as views e delega o desenho para módulos em views/.
  */
 function render() {
+  const canSelectModel = state.year !== "Todos";
+
+  if (!canSelectModel && state.selectedModelKey !== null) {
+    state.selectedModelKey = null;
+  }
+
   const rows = buildScatterRows(
     state.data.summaryRows,
     state.year,
@@ -216,11 +222,13 @@ function render() {
     yMetric: state.yMetric,
     brushAreas: state.brushAreas,
     selectedModelKey: state.selectedModelKey,
+    canSelectModel,
     isShiftDown: () => state.isShiftDown,
     onBrushAreasChange: (newBrushAreas) => {
       state.brushAreas = newBrushAreas;
     },
     onModelSelect: (modelKey) => {
+      if (!canSelectModel) return;
       state.selectedModelKey = modelKey;
       render();
     },
@@ -490,6 +498,7 @@ function renderSideCharts({ selected, allRows, color, hasActiveBrush }) {
   const container = d3.select("#sideCharts");
   container.html("");
 
+  const canSelectModel = state.year !== "Todos";
   const activeRows = hasActiveBrush ? selected : allRows;
   const usingDefaultSelection = !hasActiveBrush && allRows.length > 0;
 
@@ -542,8 +551,6 @@ function renderSideCharts({ selected, allRows, color, hasActiveBrush }) {
     rows: activeRows,
   });
 
-
-
   renderTemperatureHeatmap({
     container,
     title: `Heatmap de temperatura por ${state.xMetric}`,
@@ -574,11 +581,13 @@ function renderSideCharts({ selected, allRows, color, hasActiveBrush }) {
     metricName: state.xMetric,
     valueAccessor: (d) => d.x,
     rankLimit: state.rankLimit,
-    selectedModelKey: state.selectedModelKey,
-    onModelSelect: (modelKey) => {
-      state.selectedModelKey = modelKey;
-      render();
-    },
+    selectedModelKey: canSelectModel ? state.selectedModelKey : null,
+    onModelSelect: canSelectModel
+      ? (modelKey) => {
+          state.selectedModelKey = modelKey;
+          render();
+        }
+      : null,
   });
 
   renderOrderedModels({
@@ -591,11 +600,13 @@ function renderSideCharts({ selected, allRows, color, hasActiveBrush }) {
     metricName: state.yMetric,
     valueAccessor: (d) => d.y,
     rankLimit: state.rankLimit,
-    selectedModelKey: state.selectedModelKey,
-    onModelSelect: (modelKey) => {
-      state.selectedModelKey = modelKey;
-      render();
-    },
+    selectedModelKey: canSelectModel ? state.selectedModelKey : null,
+    onModelSelect: canSelectModel
+      ? (modelKey) => {
+          state.selectedModelKey = modelKey;
+          render();
+        }
+      : null,
   });
 }
 
