@@ -1,4 +1,3 @@
-````md
 # DiplomatrixVis
 
 ## Estrutura
@@ -161,4 +160,3 @@ HTML
 CSS
 Vite
 ```
-````
